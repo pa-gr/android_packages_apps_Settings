@@ -216,4 +216,12 @@
     <!-- Radio Info -->
     <string name="radio_info_title">Radio info</string>
 
+    <!-- Network traffic -->
+    <string name="network_traffic_title">Network traffic indicator</string>
+    <string name="network_traffic_summary">Show real-time internet speed in status bar</string>
+    <string name="network_traffic_switch_title">Use network traffic indicator</string>
+    <string name="network_traffic_options_title">Options</string>
+    <string name="network_traffic_autohide_title">Auto-hide</string>
+    <string name="network_traffic_autohide_summary">Hide when speed is below 1 KB/s</string>
+
 </resources>

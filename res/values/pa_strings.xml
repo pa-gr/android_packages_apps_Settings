@@ -198,4 +198,8 @@
     <!-- Navbar options -->
     <string name="navbar_invert_layout_title">Invert Navigation Bar layout</string>
     <string name="navbar_invert_info">This will swap the \"Back\" and \"Recents\" buttons on the navigation bar</string>
+
+    <!-- Cutout force fullscreen -->
+    <string name="display_cutout_force_fullscreen_title">Full screen apps</string>
+    <string name="display_cutout_force_fullscreen_summary">Ignore notch space for selected applications</string>
 </resources>

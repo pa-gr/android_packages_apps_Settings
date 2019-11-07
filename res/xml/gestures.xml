@@ -94,6 +94,12 @@
         settings:controller="com.android.settings.gestures.PowerMenuPreferenceController" />
 
     <co.aospa.framework.preference.SecureSettingSwitchPreference
+        android:key="advanced_reboot"
+        android:title="@string/global_actions_advanced_reboot_title"
+        android:summary="@string/global_actions_advanced_reboot_summary"
+        android:defaultValue="false" />
+
+    <co.aospa.framework.preference.SecureSettingSwitchPreference
         android:key="status_bar_quick_qs_pulldown"
         android:title="@string/quick_settings_quick_pull_down_title"
         android:summary="@string/quick_settings_quick_pull_down_summary"

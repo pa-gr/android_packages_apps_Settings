@@ -81,7 +81,7 @@
         android:fragment="com.android.settings.gestures.PowerMenuSettings"
         settings:controller="com.android.settings.gestures.PowerMenuPreferenceController" />
 
-    <Preference
+     <Preference
         android:key="power_button_torch_summary"
         android:title="@string/power_button_torch_title"
         android:fragment="co.aospa.settings.gestures.PowerButtonTorchSettings"
@@ -92,6 +92,12 @@
         android:title="@string/volume_button_music_control_title"
         android:fragment="co.aospa.settings.gestures.VolumeButtonMusicControlGestureSettings"
         settings:controller="co.aospa.settings.gestures.VolumeButtonMusicControlPreferenceController" />
+
+    <Preference
+        android:key="three_finger_gesture_summary"
+        android:title="@string/three_finger_gesture"
+        android:fragment="co.aospa.settings.gestures.SwipeToScreenshotGestureSettings"
+        settings:controller="co.aospa.settings.gestures.SwipeToScreenshotPreferenceController" />
 
     <com.android.settingslib.PrimarySwitchPreference
         android:key="gesture_prevent_ringing_summary"

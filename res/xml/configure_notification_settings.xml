@@ -171,35 +171,43 @@
             android:summary="@string/heads_up_summary"
             android:defaultValue="false" />
 
+        <co.aospa.framework.preference.SystemSettingSwitchPreference
+            android:key="less_boring_heads_up"
+            android:dependency="heads_up_notifications_enabled"
+            android:order="23"
+            android:title="@string/less_boring_heads_up_title"
+            android:summary="@string/less_boring_heads_up_summary"
+            android:defaultValue="false" />
+
         <SwitchPreferenceCompat
              android:key="silent_icons"
-             android:order="23"
+             android:order="24"
              android:title="@string/silent_notifications_status_bar"
              settings:controller="com.android.settings.notification.SilentStatusBarPreferenceController"/>
 
         <SwitchPreferenceCompat
             android:key="show_snooze_options"
-            android:order="24"
+            android:order="25"
             android:title="@string/snooze_options_title"
             settings:controller="com.android.settings.notification.SnoozeNotificationPreferenceController" />
 
         <!-- Notification badging -->
         <SwitchPreferenceCompat
             android:key="notification_badging"
-            android:order="25"
+            android:order="26"
             android:title="@string/notification_badging_title"
             settings:controller="com.android.settings.notification.BadgingNotificationPreferenceController"/>
 
         <!-- Pulse notification light, on devices that support it -->
         <SwitchPreferenceCompat
             android:key="notification_pulse"
-            android:order="26"
+            android:order="27"
             android:title="@string/notification_pulse_title"
             settings:controller="com.android.settings.notification.PulseNotificationPreferenceController"/>
 
         <SwitchPreferenceCompat
             android:key="notification_assistant"
-            android:order="27"
+            android:order="28"
             android:title="@string/notification_assistant_title"
             android:summary="@string/notification_assistant_summary"
             settings:controller="com.android.settings.notification.NotificationAssistantPreferenceController"/>

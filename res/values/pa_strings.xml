@@ -160,9 +160,9 @@
     <string name="battery_stats_reset">Reset stats</string>
     <string name="battery_stats_message">Battery history stats are going to be reset</string>
 
-    <!-- Battery light -->
-    <string name="battery_light_title">Battery light</string>
-    <string name="battery_light_summary">Turn on the light while charging and blink when battery is low</string>
+    <!-- Low battery light -->
+    <string name="low_battery_light_title">Low battery light</string>
+    <string name="low_battery_light_summary">Blink LED when battery is low</string>
 
     <!-- Quick Settings quick pulldown -->
     <string name="quick_settings_quick_pull_down_title">Quick QS pulldown</string>

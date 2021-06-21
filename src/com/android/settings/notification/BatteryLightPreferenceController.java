@@ -16,7 +16,7 @@
 
 package com.android.settings.notification;
 
-import static android.provider.Settings.Global.BATTERY_LIGHT_ENABLED;
+import static android.provider.Settings.Global.LOW_BATTERY_LIGHT_ENABLED;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -76,22 +76,22 @@ public class BatteryLightPreferenceController extends TogglePreferenceController
 
     @Override
     public boolean isChecked() {
-        boolean enabledByDefault = mContext.getResources().getBoolean(
+        boolean hasIntrusiveBatteryLed = mContext.getResources().getBoolean(
                         com.android.internal.R.bool.config_intrusiveBatteryLed);
-        return Settings.Global.getInt(mContext.getContentResolver(), BATTERY_LIGHT_ENABLED,
-                enabledByDefault ? ON : OFF) == ON;
+        return Settings.Global.getInt(mContext.getContentResolver(), LOW_BATTERY_LIGHT_ENABLED,
+                hasIntrusiveBatteryLed ? OFF : ON) == ON;
     }
 
     @Override
     public boolean setChecked(boolean isChecked) {
-        return Settings.Global.putInt(mContext.getContentResolver(), BATTERY_LIGHT_ENABLED,
+        return Settings.Global.putInt(mContext.getContentResolver(), LOW_BATTERY_LIGHT_ENABLED,
                 isChecked ? ON : OFF);
     }
 
     class SettingObserver extends ContentObserver {
 
-        private final Uri BATTERY_LIGHT_ENABLED_URI =
-                Settings.Global.getUriFor(Settings.Global.BATTERY_LIGHT_ENABLED);
+        private final Uri LOW_BATTERY_LIGHT_ENABLED_URI =
+                Settings.Global.getUriFor(LOW_BATTERY_LIGHT_ENABLED);
 
         private final Preference mPreference;
 
@@ -102,7 +102,7 @@ public class BatteryLightPreferenceController extends TogglePreferenceController
 
         public void register(ContentResolver cr, boolean register) {
             if (register) {
-                cr.registerContentObserver(BATTERY_LIGHT_ENABLED_URI, false, this);
+                cr.registerContentObserver(LOW_BATTERY_LIGHT_ENABLED_URI, false, this);
             } else {
                 cr.unregisterContentObserver(this);
             }
@@ -111,7 +111,7 @@ public class BatteryLightPreferenceController extends TogglePreferenceController
         @Override
         public void onChange(boolean selfChange, Uri uri) {
             super.onChange(selfChange, uri);
-            if (BATTERY_LIGHT_ENABLED_URI.equals(uri)) {
+            if (LOW_BATTERY_LIGHT_ENABLED_URI.equals(uri)) {
                 updateState(mPreference);
             }
         }

@@ -102,7 +102,9 @@ public class ColorModePreferenceFragment extends RadioButtonPickerFragment {
     @Override
     public void updateCandidates() {
         super.updateCandidates();
-        addPreferencesFromResource(R.xml.color_mode_settings);
+
+        if (getContext().getResources().getBoolean(R.bool.config_show_color_balance_controls))
+            addPreferencesFromResource(R.xml.color_mode_settings);
     }
 
     @Override

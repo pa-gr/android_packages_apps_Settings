@@ -111,6 +111,8 @@
     <uses-permission android:name="android.permission.ALLOW_PLACE_IN_MULTI_PANE_SETTINGS" />
     <uses-permission android:name="com.qualcomm.qti.permission.USE_EXT_TELEPHONY_SERVICE" />
 
+    <uses-permission android:name="com.google.android.settings.intelligence.BATTERY_DATA"/>
+
     <application
             android:name=".SettingsApplication"
             android:label="@string/settings_label"
@@ -4331,6 +4333,13 @@
         <activity android:theme="@style/SudThemeGlif.Light" android:label="@string/columbus_gesture_training_action_title" android:name="com.google.android.settings.gestures.columbus.ColumbusGestureTrainingActionActivity" android:enabled="true" android:exported="false" android:screenOrientation="portrait"/>
         <activity android:theme="@style/SudThemeGlif.Light" android:label="@string/columbus_gesture_training_launch_title" android:name="com.google.android.settings.gestures.columbus.ColumbusGestureTrainingLaunchActivity" android:enabled="true" android:exported="false" android:screenOrientation="portrait"/>
         <activity android:theme="@style/SudThemeGlif.Light" android:label="@string/columbus_gesture_training_finished_title" android:name="com.google.android.settings.gestures.columbus.ColumbusGestureTrainingFinishedActivity" android:enabled="true" android:exported="false" android:screenOrientation="portrait"/>
+
+        <receiver android:name="com.google.android.settings.fuelgauge.BatteryBroadcastReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="settings.intelligence.battery.action.FETCH_BATTERY_USAGE_DATA"/>
+            </intent-filter>
+        </receiver>
+        <service android:name="com.google.android.settings.fuelgauge.BatteryUsageLoaderService" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="false" android:process=":usage_data_loader"/>
 
     </application>
 </manifest>

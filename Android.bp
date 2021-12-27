@@ -102,6 +102,7 @@ android_library {
         "windowExtLib",
         "co.aospa.framework",
         "columbus-settingsgoogle",
+        "powerusagefeaturegoogle",
     ],
 
     libs: [
@@ -176,5 +177,11 @@ filegroup {
 java_import {
     name: "columbus-settingsgoogle",
     jars: ["libs/columbus-settings.jar"],
+    sdk_version: "current",
+}
+
+java_import {
+    name: "powerusagefeaturegoogle",
+    jars: ["libs/powerusagefeaturegoogle.jar"],
     sdk_version: "current",
 }

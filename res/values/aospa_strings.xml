@@ -228,4 +228,8 @@
     <string name="global_actions_advanced_reboot_title">Advanced restart</string>
     <string name="global_actions_advanced_reboot_summary">Show options for recovery and bootloader in power menu</string>
 
+    <!-- DT2S on statusbar-->
+    <string name="double_tap_sleep_title">Tap to sleep</string>
+    <string name="double_tap_sleep_summary">Double-tap anywhere on the status bar to turn off screen</string>
+
 </resources>

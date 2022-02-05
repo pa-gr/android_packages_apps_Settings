@@ -226,4 +226,7 @@
     <string name="search">Search</string>
     <string name="search_apps">Search apps</string>
 
+    <!-- Per-app volume -->
+    <string name="app_volume">App volume</string>
+
 </resources>

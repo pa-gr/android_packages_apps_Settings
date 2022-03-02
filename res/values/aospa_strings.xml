@@ -224,4 +224,8 @@
     <string name="network_traffic_autohide_title">Auto-hide</string>
     <string name="network_traffic_autohide_summary">Hide when speed is below 1 KB/s</string>
 
+    <!-- Hotspot -->
+    <string name="wifi_hotspot_hidden_ssid_title">Hidden network</string>
+    <string name="wifi_hotspot_hidden_ssid_summary">Hide the hotspot name in the list of available Wi-Fi networks</string>
+
 </resources>

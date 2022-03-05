@@ -300,4 +300,8 @@
     <string name="app_lock_timeout_10min">10 minutes</string>
     <string name="app_lock_timeout_30min">30 minutes</string>
 
+    <!-- Power menu on secure lockscreen -->
+    <string name="lockscreen_enable_power_menu_title">Power menu</string>
+    <string name="lockscreen_enable_power_menu_summary">Allow accessing power menu on secure lockscreen</string>
+
 </resources>

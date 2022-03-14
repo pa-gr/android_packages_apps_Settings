@@ -100,6 +100,7 @@ android_library {
         "android.hardware.dumpstate-V1.1-java",
         "lottie",
         "co.aospa.framework",
+        "powerusagefeaturegoogle",
         "columbus-settingsgoogle",
     ],
 
@@ -161,6 +162,12 @@ filegroup {
 filegroup {
     name: "Settings_manifest",
     srcs: ["AndroidManifest.xml"],
+}
+
+java_import {
+    name: "powerusagefeaturegoogle",
+    jars: ["libs/powerusagefeaturegoogle.jar"],
+    sdk_version: "current",
 }
 
 java_import {

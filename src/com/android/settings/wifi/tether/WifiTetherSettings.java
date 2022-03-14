@@ -73,6 +73,8 @@ public class WifiTetherSettings extends RestrictedDashboardFragment
     static final String KEY_WIFI_TETHER_NETWORK_AP_BAND = "wifi_tether_network_ap_band";
     @VisibleForTesting
     static final String KEY_WIFI_TETHER_HIDDEN_SSID = "wifi_tether_hidden_ssid";
+    @VisibleForTesting
+    static final String KEY_WIFI_TETHER_CLIENT_MANAGER = "wifi_tether_client_manager";
 
     private WifiTetherSwitchBarController mSwitchBarController;
     private WifiTetherSSIDPreferenceController mSSIDPreferenceController;
@@ -80,6 +82,7 @@ public class WifiTetherSettings extends RestrictedDashboardFragment
     private WifiTetherApBandPreferenceController mApBandPreferenceController;
     private WifiTetherSecurityPreferenceController mSecurityPreferenceController;
     private WifiTetherHiddenSsidPreferenceController mHiddenSsidPrefController;
+    private WifiTetherClientManagerPreferenceController mClientPrefController;
 
     private WifiManager mWifiManager;
     private boolean mRestartWifiApAfterConfigChange;
@@ -139,6 +142,7 @@ public class WifiTetherSettings extends RestrictedDashboardFragment
         mPasswordPreferenceController = use(WifiTetherPasswordPreferenceController.class);
         mApBandPreferenceController = use(WifiTetherApBandPreferenceController.class);
         mHiddenSsidPrefController = use(WifiTetherHiddenSsidPreferenceController.class);
+        mClientPrefController = use(WifiTetherClientManagerPreferenceController.class);
     }
 
     @Override
@@ -215,6 +219,7 @@ public class WifiTetherSettings extends RestrictedDashboardFragment
         controllers.add(
                 new WifiTetherAutoOffPreferenceController(context, KEY_WIFI_TETHER_AUTO_OFF));
         controllers.add(new WifiTetherHiddenSsidPreferenceController(context, listener));
+        controllers.add(new WifiTetherClientManagerPreferenceController(context, listener));
         return controllers;
     }
 
@@ -300,6 +305,7 @@ public class WifiTetherSettings extends RestrictedDashboardFragment
             configBuilder.setBand(mApBandPreferenceController.getBandIndex());
         }
         configBuilder.setHiddenSsid(mHiddenSsidPrefController.isHiddenSsidEnabled());
+        mClientPrefController.updateConfig(configBuilder);
         return configBuilder.build();
     }
 
@@ -352,6 +358,7 @@ public class WifiTetherSettings extends RestrictedDashboardFragment
                 keys.add(KEY_WIFI_TETHER_AUTO_OFF);
                 keys.add(KEY_WIFI_TETHER_NETWORK_AP_BAND);
                 keys.add(KEY_WIFI_TETHER_HIDDEN_SSID);
+                keys.add(KEY_WIFI_TETHER_CLIENT_MANAGER);
             }
 
             // Remove duplicate

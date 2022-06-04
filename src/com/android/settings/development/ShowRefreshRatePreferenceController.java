@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.settings.display;
+package com.android.settings.development;
 
 import android.content.Context;
 import android.os.IBinder;
@@ -70,6 +70,18 @@ public class ShowRefreshRatePreferenceController extends DeveloperOptionsPrefere
     @Override
     public void updateState(Preference preference) {
         updateShowRefreshRateSetting();
+    }
+
+    @Override
+    protected void onDeveloperOptionsSwitchDisabled() {
+        super.onDeveloperOptionsSwitchDisabled();
+        final SwitchPreference preference = (SwitchPreference) mPreference;
+        if (preference.isChecked()) {
+            // Writing false to the preference when the setting is already off will have a
+            // side effect of turning on the preference that we wish to avoid
+            writeShowRefreshRateSetting(false);
+            preference.setChecked(false);
+        }
     }
 
     @VisibleForTesting

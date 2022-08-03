@@ -37,22 +37,7 @@
 
     <DropDownPreference
         android:key="dc_dimming_auto_mode"
-        android:title="@string/dc_dimming_auto_mode_title"
+        android:title="@string/dark_ui_auto_mode_title"
         android:summary="%s" />
-
-    <SeekBarPreference
-        android:key="dc_dimming_brightness"
-        android:title="@string/dc_dimming_brightness_title"
-        android:summary="@string/dc_dimming_brightness_summary"
-        android:min="1"
-        android:max="99"
-        style="@style/SettingsSeekbarPreference.SettingsLib"
-        settings:showSeekBarValue="true" />
-
-    <com.android.settingslib.widget.LayoutPreference
-        android:key="dc_dimming_restore_button"
-        android:title="@string/dc_dimming_title"
-        android:selectable="false"
-        android:layout="@layout/dc_dimming_restoration_button" />
 
 </PreferenceScreen>

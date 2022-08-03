@@ -16,12 +16,6 @@ package com.android.settings.display;
 
 import static android.hardware.display.DcDimmingManager.MODE_AUTO_OFF;
 import static android.hardware.display.DcDimmingManager.MODE_AUTO_TIME;
-import static android.hardware.display.DcDimmingManager.MODE_AUTO_BRIGHTNESS;
-import static android.hardware.display.DcDimmingManager.MODE_AUTO_FULL;
-
-import static com.android.settingslib.display.BrightnessUtils.GAMMA_SPACE_MAX;
-import static com.android.settingslib.display.BrightnessUtils.convertGammaToLinear;
-import static com.android.settingslib.display.BrightnessUtils.convertLinearToGamma;
 
 import android.content.Context;
 import android.content.ContentResolver;
@@ -71,29 +65,13 @@ public class DcDimmingSettings extends DashboardFragment
     private static final String TAG = "DcDimmingSettings";
 
     private static final String KEY_MAIN_SWITCH = "dc_dimming_activated";
-    private static final String KEY_BRIGHTNESS = "dc_dimming_brightness";
-    private static final String KEY_RESTORE_BUTTON = "dc_dimming_restore_button";
     private static final String KEY_AUTO_MODE = "dc_dimming_auto_mode";
 
     private DcDimmingManager mDcDimmingManager;
     private Context mContext;
 
-    private int mMinimumBacklight;
-    private int mMaximumBacklight;
-
-    private LayoutPreference mRestoreAuto;
     private DropDownPreference mAutoPref;
-    private SeekBarPreference mBrightnessPref;
-    private Button mRestoreButton;
     private MainSwitchPreference mPreference;
-
-    private final View.OnClickListener mRestoreListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            mDcDimmingManager.restoreAutoMode();
-            updateStateInternal();
-        }
-    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -106,44 +84,21 @@ public class DcDimmingSettings extends DashboardFragment
             return;
         }
 
-        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        mMinimumBacklight = pm.getMinimumScreenBrightnessSetting();
-        mMaximumBacklight = pm.getMaximumScreenBrightnessSetting();
-
-        SettingsObserver settingsObserver = new SettingsObserver(new Handler());
-        settingsObserver.observe();
-
         mPreference = findPreference(KEY_MAIN_SWITCH);
         mPreference.addOnSwitchChangeListener(this);
         mPreference.updateStatus(mDcDimmingManager.isDcDimmingOn());
 
-        mBrightnessPref = findPreference(KEY_BRIGHTNESS);
-        final int gamma = convertLinearToGamma(mDcDimmingManager.getBrightnessThreshold(),
-                mMinimumBacklight, mMaximumBacklight);
-        mBrightnessPref.setValue((int) ((float) gamma * 100.0f / GAMMA_SPACE_MAX));
-        mBrightnessPref.setOnPreferenceChangeListener(this);
-
-        mRestoreAuto = findPreference(KEY_RESTORE_BUTTON);
-        Button restoreActiveButton = mRestoreAuto.findViewById(R.id.dc_dimming_restore_active);
-        restoreActiveButton.setOnClickListener(mRestoreListener);
-
         mAutoPref = findPreference(KEY_AUTO_MODE);
         mAutoPref.setEntries(new CharSequence[]{
                 mContext.getString(R.string.dark_ui_auto_mode_never),
-                mContext.getString(R.string.dark_ui_auto_mode_auto),
-                mContext.getString(R.string.dc_dimming_mode_brightness),
-                mContext.getString(R.string.dc_dimming_mode_full)
+                mContext.getString(R.string.dark_ui_auto_mode_auto)
         });
         mAutoPref.setEntryValues(new CharSequence[]{
                 String.valueOf(MODE_AUTO_OFF),
-                String.valueOf(MODE_AUTO_TIME),
-                String.valueOf(MODE_AUTO_BRIGHTNESS),
-                String.valueOf(MODE_AUTO_FULL)
+                String.valueOf(MODE_AUTO_TIME)
         });
         mAutoPref.setValue(String.valueOf(mDcDimmingManager.getAutoMode()));
         mAutoPref.setOnPreferenceChangeListener(this);
-
-        updateStateInternal();
     }
 
     @Override
@@ -165,49 +120,13 @@ public class DcDimmingSettings extends DashboardFragment
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         if (preference == mAutoPref) {
             mDcDimmingManager.setAutoMode(Integer.parseInt((String) newValue));
-        } else if (preference == mBrightnessPref) {
-            final int progress = (int) newValue;
-            final int gamma = (int) ((float) progress / 100.0f * GAMMA_SPACE_MAX);
-            final int linear = convertGammaToLinear(gamma, mMinimumBacklight, mMaximumBacklight);
-            mDcDimmingManager.setBrightnessThreshold(linear);
         }
-        updateStateInternal();
         return true;
     }
 
     @Override
     public void onSwitchChanged(Switch switchView, boolean isChecked) {
         mDcDimmingManager.setDcDimming(isChecked);
-        updateStateInternal();
-    }
-
-    private void updateStateInternal() {
-        final int mode = mDcDimmingManager.getAutoMode();
-        final boolean isForce = mDcDimmingManager.isForcing();
-
-        mRestoreAuto.setVisible(isForce);
-        mBrightnessPref.setEnabled((mode >= MODE_AUTO_BRIGHTNESS) && !isForce);
-    }
-
-    private class SettingsObserver extends ContentObserver {
-        SettingsObserver(Handler handler) {
-            super(handler);
-        }
-
-        void observe() {
-            ContentResolver resolver = mContext.getContentResolver();
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.DC_DIMMING_AUTO_MODE), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.DC_DIMMING_STATE), false, this,
-                    UserHandle.USER_ALL);
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            updateStateInternal();
-        }
     }
 
     public static final Indexable.SearchIndexProvider SEARCH_INDEX_DATA_PROVIDER =

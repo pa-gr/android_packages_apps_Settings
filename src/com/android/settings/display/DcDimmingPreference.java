@@ -16,8 +16,6 @@ package com.android.settings.display;
 
 import static android.hardware.display.DcDimmingManager.MODE_AUTO_OFF;
 import static android.hardware.display.DcDimmingManager.MODE_AUTO_TIME;
-import static android.hardware.display.DcDimmingManager.MODE_AUTO_BRIGHTNESS;
-import static android.hardware.display.DcDimmingManager.MODE_AUTO_FULL;
 
 import android.content.Context;
 import android.content.ContentResolver;
@@ -106,15 +104,14 @@ public class DcDimmingPreference extends TwoTargetPreference {
     }
 
     private void updateSummary(boolean active) {
-        final boolean auto = mDcDimmingManager.getAutoMode() != MODE_AUTO_OFF;
         String summary;
-        if (active) {
-            summary = getContext().getString(auto
-                    ? R.string.dc_dimming_on_auto_mode_auto
-                    : R.string.dark_ui_summary_on_auto_mode_never);
+        if (mDcDimmingManager.getAutoMode() != MODE_AUTO_OFF) {
+            summary = getContext().getString(active
+                    ? R.string.dark_ui_summary_on_auto_mode_auto
+                    : R.string.dark_ui_summary_off_auto_mode_auto);
         } else {
-            summary = getContext().getString(auto
-                    ? R.string.dc_dimming_off_auto_mode_auto
+            summary = getContext().getString(active
+                    ? R.string.dark_ui_summary_on_auto_mode_never
                     : R.string.dark_ui_summary_off_auto_mode_never);
         }
         setSummary(summary);

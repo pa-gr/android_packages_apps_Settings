@@ -262,4 +262,8 @@
     <!-- Battery light -->
     <string name="battery_light_title">Battery light</string>
 
+     <!-- Per-app volume control -->
+     <string name="app_volume_title">App-specific volume</string>
+     <string name="app_volume_summary">Allow to set different volume levels for each app</string>
+
 </resources>

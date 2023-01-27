@@ -52,7 +52,6 @@ import com.android.settings.fuelgauge.BatterySettingsFeatureProviderImpl;
 import com.android.settings.fuelgauge.BatteryStatusFeatureProvider;
 import com.android.settings.fuelgauge.BatteryStatusFeatureProviderImpl;
 import com.android.settings.fuelgauge.PowerUsageFeatureProvider;
-import com.android.settings.fuelgauge.PowerUsageFeatureProviderImpl;
 import com.android.settings.gestures.AssistGestureFeatureProvider;
 import com.android.settings.gestures.AssistGestureFeatureProviderImpl;
 import com.android.settings.homepage.contextualcards.ContextualCardFeatureProvider;
@@ -76,6 +75,7 @@ import com.android.settings.vpn2.AdvancedVpnFeatureProviderImpl;
 import com.android.settings.wifi.WifiTrackerLibProvider;
 import com.android.settings.wifi.WifiTrackerLibProviderImpl;
 import com.android.settingslib.core.instrumentation.MetricsFeatureProvider;
+import com.google.android.settings.fuelgauge.PowerUsageFeatureProviderGoogleImpl;
 
 /**
  * {@link FeatureFactory} implementation for AOSP Settings.
@@ -126,7 +126,7 @@ public class FeatureFactoryImpl extends FeatureFactory {
     @Override
     public PowerUsageFeatureProvider getPowerUsageFeatureProvider(Context context) {
         if (mPowerUsageFeatureProvider == null) {
-            mPowerUsageFeatureProvider = new PowerUsageFeatureProviderImpl(
+            mPowerUsageFeatureProvider = new PowerUsageFeatureProviderGoogleImpl(
                     context.getApplicationContext());
         }
         return mPowerUsageFeatureProvider;

@@ -16,55 +16,90 @@
 
 package com.android.settings.display;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.PowerManager;
 import android.provider.Settings;
+
 import androidx.preference.Preference;
 import androidx.preference.PreferenceScreen;
+
+import com.android.settings.R;
+import com.android.settings.core.TogglePreferenceController;
+import com.android.settingslib.PrimarySwitchPreference;
+import com.android.settingslib.core.lifecycle.LifecycleObserver;
+import com.android.settingslib.core.lifecycle.events.OnStart;
+import com.android.settingslib.core.lifecycle.events.OnStop;
 
 import java.util.Collections;
 import java.util.Set;
 
-import com.android.settings.R;
-import com.android.settings.core.TogglePreferenceController;
-
-public class SmoothDisplayPreferenceController extends TogglePreferenceController {
+public class SmoothDisplayPreferenceController extends TogglePreferenceController implements
+        LifecycleObserver, OnStart, OnStop {
 
     private static final String TAG = "SmoothDisplayPreferenceController";
     private static final int DEFAULT_REFRESH_RATE = 60;
 
     private Set<Integer> mHighRefreshRates;
     private int mLeastHighRefreshRate, mMaxRefreshRate;
-    private Preference mPreference;
+    private PrimarySwitchPreference mPreference;
+
+    private final PowerManager mPowerManager;
+
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (mPreference != null)
+                updateState(mPreference);
+        }
+    };
 
     public SmoothDisplayPreferenceController(Context context, String preferenceKey) {
         super(context, preferenceKey);
         mHighRefreshRates = SmoothDisplayFragment.getHighRefreshRates(context);
         mMaxRefreshRate = Collections.max(mHighRefreshRates);
         mLeastHighRefreshRate = Collections.min(mHighRefreshRates);
+        mPowerManager = context.getSystemService(PowerManager.class);
+    }
+
+    @Override
+    public void onStart() {
+        mContext.registerReceiver(mReceiver,
+                new IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED));
+    }
+
+    @Override
+    public void onStop() {
+        mContext.unregisterReceiver(mReceiver);
     }
 
     @Override
     public void displayPreference(PreferenceScreen screen) {
         super.displayPreference(screen);
-        mPreference = screen.findPreference(getPreferenceKey());
+        mPreference = (PrimarySwitchPreference) screen.findPreference(getPreferenceKey());
     }
 
     @Override
     public CharSequence getSummary() {
+        if (mPowerManager.isPowerSaveMode()) {
+            return mContext.getString(R.string.dark_ui_mode_disabled_summary_dark_theme_on);
+        }
         final boolean checked = isChecked();
         final String status = mContext.getString(checked
                 ? R.string.switch_on_text : R.string.switch_off_text);
         final int refreshRate = checked ? getPeakRefreshRate() : DEFAULT_REFRESH_RATE;
-        final String refreshRateString = String.format("(%d Hz)", refreshRate);
-        return new StringBuilder()
-                .append(status)
-                .append(" ")
-                .append(refreshRateString);
+        return String.format("%s (%d Hz)", status, refreshRate);
     }
 
     @Override
     public int getAvailabilityStatus() {
-        return mHighRefreshRates.size() > 1 ? AVAILABLE : UNSUPPORTED_ON_DEVICE;
+        if (mContext.getResources().getBoolean(R.bool.config_show_smooth_display)) {
+            return mHighRefreshRates.size() > 1 ? AVAILABLE : UNSUPPORTED_ON_DEVICE;
+        } else {
+            return UNSUPPORTED_ON_DEVICE;
+        }
     }
 
     @Override
@@ -85,6 +120,10 @@ public class SmoothDisplayPreferenceController extends TogglePreferenceControlle
     public void updateState(Preference preference) {
         super.updateState(preference);
         refreshSummary(preference);
+
+        final boolean enabled = !mPowerManager.isPowerSaveMode();
+        mPreference.setEnabled(enabled);
+        mPreference.setSwitchEnabled(enabled);
     }
 
     @Override

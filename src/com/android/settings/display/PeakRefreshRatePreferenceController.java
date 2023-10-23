@@ -16,9 +16,13 @@
 
 package com.android.settings.display;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.display.DisplayManager;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.provider.DeviceConfig;
 import android.provider.Settings;
 import android.util.Log;
@@ -47,9 +51,18 @@ public class PeakRefreshRatePreferenceController extends TogglePreferenceControl
     private static final float INVALIDATE_REFRESH_RATE = -1f;
 
     private final Handler mHandler;
+    private final PowerManager mPowerManager;
     private final IDeviceConfigChange mOnDeviceConfigChange;
     private final DeviceConfigDisplaySettings mDeviceConfigDisplaySettings;
     private Preference mPreference;
+
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (mPreference != null)
+                updateState(mPreference);
+        }
+    };
 
     private interface IDeviceConfigChange {
         void onDefaultRefreshRateChanged();
@@ -58,6 +71,7 @@ public class PeakRefreshRatePreferenceController extends TogglePreferenceControl
     public PeakRefreshRatePreferenceController(Context context, String key) {
         super(context, key);
         mHandler = new Handler(context.getMainLooper());
+        mPowerManager = context.getSystemService(PowerManager.class);
         mDeviceConfigDisplaySettings = new DeviceConfigDisplaySettings();
         mOnDeviceConfigChange =
                 new IDeviceConfigChange() {
@@ -87,13 +101,18 @@ public class PeakRefreshRatePreferenceController extends TogglePreferenceControl
     @Override
     public void displayPreference(PreferenceScreen screen) {
         super.displayPreference(screen);
-
         mPreference = screen.findPreference(getPreferenceKey());
+    }
 
+    @Override
+    public CharSequence getSummary() {
+        if (mPowerManager.isPowerSaveMode()) {
+            return mContext.getString(R.string.dark_ui_mode_disabled_summary_dark_theme_on);
+        }
         String preferenceSummary = mContext.getResources().getString(
                 R.string.peak_refresh_rate_summary);
-        mPreference.setSummary(preferenceSummary.replace("90",
-                Integer.toString(Math.round(mPeakRefreshRate))));
+        return preferenceSummary.replace("90",
+                Integer.toString(Math.round(mPeakRefreshRate)));
     }
 
     @Override
@@ -126,6 +145,13 @@ public class PeakRefreshRatePreferenceController extends TogglePreferenceControl
     }
 
     @Override
+    public void updateState(Preference preference) {
+        super.updateState(preference);
+        refreshSummary(preference);
+        preference.setEnabled(!mPowerManager.isPowerSaveMode());
+    }
+
+    @Override
     public int getSliceHighlightMenuRes() {
         return R.string.menu_key_display;
     }
@@ -133,11 +159,14 @@ public class PeakRefreshRatePreferenceController extends TogglePreferenceControl
     @Override
     public void onStart() {
         mDeviceConfigDisplaySettings.startListening();
+        mContext.registerReceiver(mReceiver,
+                new IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED));
     }
 
     @Override
     public void onStop() {
         mDeviceConfigDisplaySettings.stopListening();
+        mContext.unregisterReceiver(mReceiver);
     }
 
     @VisibleForTesting

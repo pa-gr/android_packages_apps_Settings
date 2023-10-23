@@ -16,8 +16,12 @@
 
 package com.android.settings.display;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.display.DisplayManager;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Display;
@@ -30,9 +34,13 @@ import androidx.preference.SwitchPreference;
 import com.android.settings.R;
 import com.android.settings.core.PreferenceControllerMixin;
 import com.android.settings.core.TogglePreferenceController;
+import com.android.settingslib.core.lifecycle.LifecycleObserver;
+import com.android.settingslib.core.lifecycle.events.OnStart;
+import com.android.settingslib.core.lifecycle.events.OnStop;
 
 public class ForcePeakRefreshRatePreferenceController extends TogglePreferenceController
-        implements Preference.OnPreferenceChangeListener, PreferenceControllerMixin {
+        implements Preference.OnPreferenceChangeListener, PreferenceControllerMixin,
+        LifecycleObserver, OnStart, OnStop {
 
     @VisibleForTesting
     static float DEFAULT_REFRESH_RATE = 60f;
@@ -46,9 +54,19 @@ public class ForcePeakRefreshRatePreferenceController extends TogglePreferenceCo
     private static final String TAG = "ForcePeakRefreshRateCtr";
 
     private Preference mPreference;
+    private final PowerManager mPowerManager;
+
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (mPreference != null)
+                updateState(mPreference);
+        }
+    };
 
     public ForcePeakRefreshRatePreferenceController(Context context, String key) {
         super(context, key);
+        mPowerManager = context.getSystemService(PowerManager.class);
 
         final DisplayManager dm = context.getSystemService(DisplayManager.class);
         final Display display = dm.getDisplay(Display.DEFAULT_DISPLAY);
@@ -65,9 +83,27 @@ public class ForcePeakRefreshRatePreferenceController extends TogglePreferenceCo
     }
 
     @Override
+    public void onStart() {
+        mContext.registerReceiver(mReceiver,
+                new IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED));
+    }
+
+    @Override
+    public void onStop() {
+        mContext.unregisterReceiver(mReceiver);
+    }
+
+    @Override
     public void displayPreference(PreferenceScreen screen) {
         super.displayPreference(screen);
         mPreference = screen.findPreference(getPreferenceKey());
+    }
+
+    @Override
+    public CharSequence getSummary() {
+        return mContext.getString(mPowerManager.isPowerSaveMode()
+                ? R.string.dark_ui_mode_disabled_summary_dark_theme_on
+                : R.string.force_high_refresh_rate_desc);
     }
 
     @Override
@@ -88,6 +124,13 @@ public class ForcePeakRefreshRatePreferenceController extends TogglePreferenceCo
     public boolean setChecked(boolean isChecked) {
         forcePeakRefreshRate(isChecked);
         return true;
+    }
+
+    @Override
+    public void updateState(Preference preference) {
+        super.updateState(preference);
+        refreshSummary(preference);
+        preference.setEnabled(!mPowerManager.isPowerSaveMode());
     }
 
     @Override

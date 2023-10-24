@@ -260,4 +260,7 @@
     <string name="enable_fingerprint_ripple_effect_title">Unlock animation</string>
     <string name="enable_fingerprint_ripple_effect_summary">Show ripple effect on unlock with fingerprint</string>
 
+    <!-- Separate ringtone/notification volume -->
+    <string name="volume_separate_notification_title">Separate ring and notification volume</string>
+
 </resources>

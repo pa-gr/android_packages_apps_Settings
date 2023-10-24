@@ -18,17 +18,26 @@ package com.android.settings.notification;
 
 import android.app.INotificationManager;
 import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.database.ContentObserver;
 import android.media.AudioManager;
-import android.os.Binder;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.os.ServiceManager;
 import android.os.Vibrator;
-import android.provider.DeviceConfig;
+import android.provider.Settings;
 import android.util.Log;
 
+import androidx.lifecycle.OnLifecycleEvent;
+import androidx.preference.PreferenceScreen;
+
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.config.sysui.SystemUiDeviceConfigFlags;
+import com.android.settingslib.core.lifecycle.Lifecycle;
 
 import java.util.Objects;
 
@@ -51,7 +60,20 @@ public abstract class RingerModeAffectedVolumePreferenceController extends
     protected boolean mSeparateNotification;
     protected INotificationManager mNoMan;
 
-    private static final boolean CONFIG_SEPARATE_NOTIFICATION_DEFAULT_VAL = false;
+    private final RingReceiver mReceiver = new RingReceiver();
+    private final H mHandler = new H();
+
+    private final ContentObserver mSettingObserver = new ContentObserver(new Handler()) {
+        @Override
+        public void onChange(boolean selfChange) {
+            boolean valueUpdated = readSeparateNotificationVolumeConfig();
+            if (valueUpdated) {
+                updateEffectsSuppressor();
+                updateRingerMode();
+                updateVisibility();
+            }
+        }
+    };
 
     public RingerModeAffectedVolumePreferenceController(Context context, String key, String tag) {
         super(context, key);
@@ -60,6 +82,37 @@ public abstract class RingerModeAffectedVolumePreferenceController extends
         if (mVibrator != null && !mVibrator.hasVibrator()) {
             mVibrator = null;
         }
+        mSeparateNotification = isSeparateNotificationConfigEnabled();
+    }
+
+    @Override
+    public void displayPreference(PreferenceScreen screen) {
+        super.displayPreference(screen);
+        if (mPreference == null) {
+            setupVolPreference(screen);
+        }
+
+        readSeparateNotificationVolumeConfig();
+        updateEffectsSuppressor();
+        updateRingerMode();
+        updateVisibility();
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    @Override
+    public void onResume() {
+        super.onResume();
+        mReceiver.register(true);
+        mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                Settings.System.VOLUME_SEPARATE_NOTIFICATION), false, mSettingObserver);
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    @Override
+    public void onPause() {
+        super.onPause();
+        mReceiver.register(false);
+        mContext.getContentResolver().unregisterContentObserver(mSettingObserver);
     }
 
     protected void updateEffectsSuppressor() {
@@ -118,11 +171,17 @@ public abstract class RingerModeAffectedVolumePreferenceController extends
         return mMuteIcon;
     }
 
+    protected void updateVisibility() {
+        if (mPreference != null) {
+            int status = getAvailabilityStatus();
+            mPreference.setVisible(status == AVAILABLE);
+            mPreference.setEnabled(mRingerMode == AudioManager.RINGER_MODE_NORMAL);
+        }
+    }
+
     protected boolean isSeparateNotificationConfigEnabled() {
-        return Binder.withCleanCallingIdentity(()
-                -> DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_SYSTEMUI,
-                SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION,
-                CONFIG_SEPARATE_NOTIFICATION_DEFAULT_VAL));
+        return Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.VOLUME_SEPARATE_NOTIFICATION, 0) == 1;
     }
 
     /**
@@ -159,19 +218,92 @@ public abstract class RingerModeAffectedVolumePreferenceController extends
      */
     protected void selectPreferenceIconState() {
         if (mPreference != null) {
-            if (mRingerMode == AudioManager.RINGER_MODE_NORMAL) {
-                mPreference.showIcon(mNormalIconId);
-            } else {
-                if (mRingerMode == AudioManager.RINGER_MODE_VIBRATE && mVibrator != null) {
-                    mMuteIcon = mVibrateIconId;
-                } else {
+            if (mVibrator != null && mRingerMode == AudioManager.RINGER_MODE_VIBRATE) {
+                mMuteIcon = mVibrateIconId;
+                mPreference.showIcon(mVibrateIconId);
+            } else if (mRingerMode == AudioManager.RINGER_MODE_SILENT
+                    || mVibrator == null && mRingerMode == AudioManager.RINGER_MODE_VIBRATE) {
+                mMuteIcon = mSilentIconId;
+                mPreference.showIcon(mSilentIconId);
+            } else { // ringmode normal: could be that we are still silent
+                if (mHelper.getStreamVolume(getAudioStream()) == 0) {
+                    // ring is in normal, but volume is in silent
                     mMuteIcon = mSilentIconId;
+                    mPreference.showIcon(mSilentIconId);
+                } else {
+                    mPreference.showIcon(mNormalIconId);
                 }
-                mPreference.showIcon(getMuteIcon());
             }
         }
     }
 
     protected abstract boolean hintsMatch(int hints);
+
+    private final class H extends Handler {
+        private static final int UPDATE_EFFECTS_SUPPRESSOR = 1;
+        private static final int UPDATE_RINGER_MODE = 2;
+        private static final int VOLUME_CHANGED = 3;
+
+        private H() {
+            super(Looper.getMainLooper());
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case UPDATE_EFFECTS_SUPPRESSOR:
+                    updateEffectsSuppressor();
+                    break;
+                case UPDATE_RINGER_MODE:
+                    updateRingerMode();
+                    updateVisibility();
+                    break;
+                case VOLUME_CHANGED:
+                    selectPreferenceIconState();
+                    updateVisibility();
+                    break;
+            }
+        }
+    }
+
+    /**
+     * For volume icon to be accurate, we need to listen to volume change as well.
+     * That is because the icon can change from mute/vibrate to normal without ringer mode changing.
+     */
+    private class RingReceiver extends BroadcastReceiver {
+        private boolean mRegistered;
+
+        public void register(boolean register) {
+            if (mRegistered == register) return;
+            if (register) {
+                final IntentFilter filter = new IntentFilter();
+                filter.addAction(NotificationManager.ACTION_EFFECTS_SUPPRESSOR_CHANGED);
+                filter.addAction(AudioManager.INTERNAL_RINGER_MODE_CHANGED_ACTION);
+                filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
+                mContext.registerReceiver(this, filter);
+            } else {
+                mContext.unregisterReceiver(this);
+            }
+            mRegistered = register;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (NotificationManager.ACTION_EFFECTS_SUPPRESSOR_CHANGED.equals(action)) {
+                mHandler.sendEmptyMessage(H.UPDATE_EFFECTS_SUPPRESSOR);
+            } else if (AudioManager.INTERNAL_RINGER_MODE_CHANGED_ACTION.equals(action)) {
+                mHandler.sendEmptyMessage(H.UPDATE_RINGER_MODE);
+            } else if (AudioManager.VOLUME_CHANGED_ACTION.equals(action)) {
+                int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
+                if (streamType == getAudioStream()) {
+                    int streamValue = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE,
+                            -1);
+                    mHandler.obtainMessage(H.VOLUME_CHANGED, streamValue, 0)
+                            .sendToTarget();
+                }
+            }
+        }
+    }
 
 }

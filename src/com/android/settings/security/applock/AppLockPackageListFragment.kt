@@ -16,6 +16,7 @@
 
 package com.android.settings.security.applock
 
+import android.app.settings.SettingsEnums
 import android.app.AppLockManager
 import android.content.Context
 import android.content.pm.PackageInfo
@@ -28,7 +29,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.forEach
 
-import com.android.internal.logging.nano.MetricsProto
 import com.android.internal.util.aospa.AospaUtils
 
 import com.android.settings.R
@@ -140,7 +140,7 @@ class AppLockPackageListFragment : DashboardFragment() {
         }
     }
 
-    override fun getMetricsCategory(): Int = MetricsProto.MetricsEvent.PA
+    override fun getMetricsCategory(): Int = SettingsEnums.SECURITY
 
     override protected fun getPreferenceScreenResId() = R.xml.app_lock_package_list_settings
 

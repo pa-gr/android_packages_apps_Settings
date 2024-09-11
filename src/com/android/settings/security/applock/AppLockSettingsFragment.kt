@@ -16,13 +16,13 @@
 
 package com.android.settings.security.applock
 
+import android.app.settings.SettingsEnums
 import android.content.Context
 import android.os.SystemProperties
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 
-import com.android.internal.logging.nano.MetricsProto
 import androidx.lifecycle.lifecycleScope
 
 import com.android.settings.R
@@ -40,7 +40,7 @@ class AppLockSettingsFragment : DashboardFragment(),
 
     override protected fun getPreferenceScreenResId() = R.xml.app_lock_settings
 
-    override fun getMetricsCategory() = MetricsProto.MetricsEvent.PA
+    override fun getMetricsCategory() = SettingsEnums.SECURITY
 
     override protected fun getLogTag() = TAG
 

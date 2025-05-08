@@ -20,6 +20,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.VpnManager
 import android.os.UserManager
+import co.aospa.settings.accounts.ParanoidAccountFeatureProviderImpl
 import co.aospa.settings.fuelgauge.ParanoidBatterySettingsFeatureProviderImpl
 import com.android.settings.accessibility.AccessibilityMetricsFeatureProvider
 import com.android.settings.accessibility.AccessibilityMetricsFeatureProviderImpl
@@ -135,7 +136,7 @@ open class FeatureFactoryImpl : FeatureFactory() {
     override val slicesFeatureProvider by lazy { SlicesFeatureProviderImpl() }
 
     override val accountFeatureProvider: AccountFeatureProvider by lazy {
-        AccountFeatureProviderImpl()
+        ParanoidAccountFeatureProviderImpl()
     }
 
     override val panelFeatureProvider by lazy { PanelFeatureProviderImpl() }
